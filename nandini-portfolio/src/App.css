@@ -613,6 +613,15 @@
   margin-bottom: 60px;
 }
 
+.project-card__image {
+  display: block;
+  width: 100%;
+  max-height: 150px;
+  object-fit: cover;
+  border-radius: 9px;
+  margin-bottom: 18px;
+}
+
 .project-card__top > span {
   color: var(--accent-light);
   font-family: "Space Grotesk", sans-serif;
@@ -1304,6 +1313,20 @@
 
 .admin-project-editor textarea {
   grid-column: 1 / -1;
+}
+
+.admin-visibility-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.admin-visibility-toggle input {
+  width: auto;
+  min-height: auto;
 }
 
 @keyframes float {

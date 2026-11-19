@@ -21,7 +21,9 @@ app.use(cors({
         const allowedOrigins = [
             process.env.FRONTEND_URL,
             "http://127.0.0.1:5176",
-            "http://localhost:5176"
+            "http://localhost:5176",
+            "http://localhost:5173",
+            "http://127.0.0.1:5173"
         ].filter(Boolean);
         callback(null, !origin || allowedOrigins.includes(origin));
     },
@@ -83,12 +85,16 @@ app.put("/api/admin/portfolio", requireAuth, async (req, res) => {
             socialLinks: req.body.socialLinks,
             skills: req.body.skills,
             projects: req.body.projects,
+            contactItems: req.body.contactItems,
             experience: req.body.experience,
             certificates: req.body.certificates,
             achievements: req.body.achievements,
             education: req.body.education,
             status: req.body.status
         };
+        if (!Object.prototype.hasOwnProperty.call(req.body, "contactItems")) {
+            delete allowed.contactItems;
+        }
 
         let portfolio = await Portfolio.findOne();
         if (!portfolio) {

@@ -40,6 +40,7 @@ const initialPortfolio = {
             technologies: [],
             projectUrl: "",
             githubUrl: "",
+            imageUrl: "",
             status: "published"
         },
         {
@@ -48,6 +49,7 @@ const initialPortfolio = {
             technologies: [],
             projectUrl: "",
             githubUrl: "",
+            imageUrl: "",
             status: "published"
         },
         {
@@ -56,6 +58,7 @@ const initialPortfolio = {
             technologies: [],
             projectUrl: "",
             githubUrl: "",
+            imageUrl: "",
             status: "draft"
         }
     ],

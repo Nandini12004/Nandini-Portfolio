@@ -26,6 +26,13 @@ function LinkedInIcon() {
   )
 }
 
+function contactHref(item) {
+  if (item.url) return item.url
+  if (item.type === 'email') return `mailto:${item.value}`
+  if (item.type === 'phone') return `tel:${item.value.replace(/[^\d+]/g, '')}`
+  return ''
+}
+
 const fallback = {
   profile: {
     name: 'Nandini Srivastava',
@@ -121,6 +128,14 @@ function PortfolioSections({ portfolio }) {
   const data = portfolio || fallback
   const profile = data.profile || {}
   const socialLinks = data.socialLinks || fallback.socialLinks
+  const contactItems = data.contactItems?.length
+    ? data.contactItems.filter((item) => item.visible !== false && item.value)
+    : [
+        socialLinks.email && { type: 'email', label: 'Email', value: socialLinks.email, url: `mailto:${socialLinks.email}` },
+        profile.location && { type: 'location', label: 'Location', value: profile.location },
+        socialLinks.github && { type: 'link', label: 'GitHub', value: socialLinks.github, url: socialLinks.github },
+        socialLinks.linkedin && { type: 'link', label: 'LinkedIn', value: socialLinks.linkedin, url: socialLinks.linkedin },
+      ].filter(Boolean)
   const skills = data.skills?.length ? data.skills : fallback.skills
   const projects = data.projects?.filter((project) => project.status !== 'draft') || fallback.projects
   const experience = data.experience?.length ? data.experience : fallback.experience
@@ -275,6 +290,13 @@ function PortfolioSections({ portfolio }) {
                 variants={reveal}
                 transition={{ delay: index * 0.1, duration: 0.58 }}
               >
+                {project.imageUrl && (
+                  <img
+                    className="project-card__image"
+                    src={project.imageUrl.startsWith('/api/') ? `${import.meta.env.VITE_API_URL || 'http://127.0.0.1:5000'}${project.imageUrl}` : project.imageUrl}
+                    alt=""
+                  />
+                )}
                 <div className="project-card__top">
                   <span>0{index + 1}</span>
                   <div>
@@ -355,10 +377,23 @@ function PortfolioSections({ portfolio }) {
           <div className="contact-grid">
             <motion.div className="contact-intro" initial={reduceMotion ? false : { opacity: 0, x: -20 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true, amount: 0.25 }}>
               <p>I am open to opportunities in software development and data analytics.</p>
-              <a href={`mailto:${socialLinks.email}`}><Mail size={18} /> {socialLinks.email}</a>
+              {contactItems.filter((item) => !['github', 'linkedin'].includes(item.label.toLowerCase())).map((item) => {
+                const href = contactHref(item)
+                if (!href) return <p className="contact-detail" key={`${item.label}-${item.value}`}><MapPin size={18} /> {item.value}</p>
+                if (item.label.toLowerCase() === 'github') {
+                  return <a href={href} target="_blank" rel="noopener noreferrer" key={`${item.label}-${item.value}`}><GitHubIcon /> {item.value}</a>
+                }
+                if (item.label.toLowerCase() === 'linkedin') {
+                  return <a href={href} target="_blank" rel="noopener noreferrer" key={`${item.label}-${item.value}`}><LinkedInIcon /> {item.value}</a>
+                }
+                return <a href={href} target={item.type === 'link' ? '_blank' : undefined} rel={item.type === 'link' ? 'noopener noreferrer' : undefined} key={`${item.label}-${item.value}`}><Mail size={18} /> {item.value}</a>
+              })}
               <div className="contact-socials">
-                {socialLinks.github && <a href={socialLinks.github} target="_blank" rel="noopener noreferrer" aria-label="GitHub"><GitHubIcon /></a>}
-                {socialLinks.linkedin && <a href={socialLinks.linkedin} target="_blank" rel="noopener noreferrer" aria-label="LinkedIn"><LinkedInIcon /></a>}
+                {contactItems.filter((item) => ['github', 'linkedin'].includes(item.label.toLowerCase())).map((item) => (
+                  <a href={contactHref(item)} target="_blank" rel="noopener noreferrer" aria-label={item.label} key={`icon-${item.label}`}>
+                    {item.label.toLowerCase() === 'github' ? <GitHubIcon /> : <LinkedInIcon />}
+                  </a>
+                ))}
               </div>
             </motion.div>
             <motion.form className="contact-form" onSubmit={submitContact} initial={reduceMotion ? false : { opacity: 0, x: 20 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true, amount: 0.25 }}>

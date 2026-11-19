@@ -1,6 +1,13 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { LayoutDashboard, LogOut, Mail, Plus, Save, Trash2, Upload, UserRound } from 'lucide-react'
+import { ExternalLink, LayoutDashboard, LogOut, Mail, Plus, Save, Trash2, Upload, UserRound } from 'lucide-react'
+
+const legacyContactItems = (data) => [
+  data.socialLinks?.email && { type: 'email', label: 'Email', value: data.socialLinks.email, url: `mailto:${data.socialLinks.email}`, visible: true },
+  data.profile?.location && { type: 'location', label: 'Location', value: data.profile.location, url: '', visible: true },
+  data.socialLinks?.github && { type: 'link', label: 'GitHub', value: data.socialLinks.github, url: data.socialLinks.github, visible: true },
+  data.socialLinks?.linkedin && { type: 'link', label: 'LinkedIn', value: data.socialLinks.linkedin, url: data.socialLinks.linkedin, visible: true },
+].filter(Boolean)
 
 function AdminDashboard() {
   const navigate = useNavigate()
@@ -10,7 +17,7 @@ function AdminDashboard() {
   const [toast, setToast] = useState(null)
   const [loading, setLoading] = useState(true)
 
-  const apiUrl = import.meta.env.VITE_API_URL || 'http://127.0.0.1:5000'
+  const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000'
 
   useEffect(() => {
     const loadAdminData = async () => {
@@ -25,7 +32,13 @@ function AdminDashboard() {
           return
         }
 
-        setPortfolio(await portfolioResponse.json())
+        const portfolioData = await portfolioResponse.json()
+        setPortfolio({
+          ...portfolioData,
+          contactItems: portfolioData.contactItems?.length
+            ? portfolioData.contactItems
+            : legacyContactItems(portfolioData),
+        })
         setContacts(await contactResponse.json())
       } catch (error) {
         setStatus(error.message)
@@ -74,6 +87,34 @@ function AdminDashboard() {
       ...current,
       [section]: current[section].filter((item, itemIndex) => itemIndex !== index),
     }))
+  }
+
+  const uploadProjectImage = async (projectId, file) => {
+    if (!file || !projectId) return
+
+    setStatus('Uploading project image...')
+    const formData = new FormData()
+    formData.append('file', file)
+
+    try {
+      const response = await fetch(`${apiUrl}/api/admin/upload/project-image/${projectId}`, {
+        method: 'POST',
+        credentials: 'include',
+        body: formData,
+      })
+      const result = await response.json()
+      if (!response.ok) throw new Error(result.message)
+
+      setPortfolio((current) => ({
+        ...current,
+        projects: current.projects.map((project) => project._id === projectId
+          ? { ...project, imageUrl: result.url }
+          : project),
+      }))
+      setStatus('Project image uploaded.')
+    } catch (error) {
+      setStatus(error.message)
+    }
   }
 
   const uploadFile = async (type, file) => {
@@ -323,7 +364,7 @@ function AdminDashboard() {
         <section className="admin-panel">
           <div className="admin-panel__heading">
             <div><p>CONTENT</p><h2>Projects</h2></div>
-            <button className="button button--secondary" type="button" onClick={() => addArrayItem('projects', { title: '', description: '', technologies: [], projectUrl: '', githubUrl: '', status: 'published' })}><Plus size={16} /> Add project</button>
+            <button className="button button--secondary" type="button" onClick={() => addArrayItem('projects', { title: '', description: '', technologies: [], projectUrl: '', githubUrl: '', imageUrl: '', status: 'published' })}><Plus size={16} /> Add project</button>
           </div>
           <div className="admin-editor-list">
             {(portfolio.projects || []).map((project, index) => (
@@ -333,11 +374,43 @@ function AdminDashboard() {
                 <input aria-label="Project technologies" placeholder="Technology names separated by commas" value={(project.technologies || []).join(', ')} onChange={(event) => updateArrayItem('projects', index, 'technologies', event.target.value.split(',').map((value) => value.trim()).filter(Boolean))} />
                 <input aria-label="Project live URL" placeholder="Live demo URL" value={project.projectUrl || ''} onChange={(event) => updateArrayItem('projects', index, 'projectUrl', event.target.value)} />
                 <input aria-label="Project GitHub URL" placeholder="GitHub URL" value={project.githubUrl || ''} onChange={(event) => updateArrayItem('projects', index, 'githubUrl', event.target.value)} />
+                <input aria-label="Project image URL" placeholder="Project image URL" value={project.imageUrl || ''} onChange={(event) => updateArrayItem('projects', index, 'imageUrl', event.target.value)} />
+                {project._id && (
+                  <label className="admin-file-action">
+                    <Upload size={14} /> Upload image
+                    <input className="admin-file-action__input" type="file" accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp" onChange={(event) => uploadProjectImage(project._id, event.target.files?.[0])} />
+                  </label>
+                )}
+                {project.imageUrl && <a className="admin-current-file" href={project.imageUrl.startsWith('/api/') ? `${apiUrl}${project.imageUrl}` : project.imageUrl} target="_blank" rel="noopener noreferrer"><ExternalLink size={14} /> Current image</a>}
                 <select aria-label="Project status" value={project.status || 'draft'} onChange={(event) => updateArrayItem('projects', index, 'status', event.target.value)}>
                   <option value="draft">Draft</option>
                   <option value="published">Published</option>
                 </select>
                 <button type="button" aria-label="Remove project" onClick={() => removeArrayItem('projects', index)}><Trash2 size={16} /> Remove</button>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        <section className="admin-panel">
+          <div className="admin-panel__heading">
+            <div><p>CONTENT</p><h2>Contact Information</h2></div>
+            <button className="button button--secondary" type="button" onClick={() => addArrayItem('contactItems', { type: 'link', label: '', value: '', url: '', visible: true })}><Plus size={16} /> Add contact item</button>
+          </div>
+          <div className="admin-editor-list">
+            {(portfolio.contactItems || []).map((item, index) => (
+              <div className="admin-project-editor" key={item._id || index}>
+                <input aria-label="Contact label" placeholder="Label (for example, LeetCode)" value={item.label || ''} onChange={(event) => updateArrayItem('contactItems', index, 'label', event.target.value)} />
+                <select aria-label="Contact type" value={item.type || 'link'} onChange={(event) => updateArrayItem('contactItems', index, 'type', event.target.value)}>
+                  <option value="email">Email</option>
+                  <option value="phone">Phone</option>
+                  <option value="location">Location</option>
+                  <option value="link">Link</option>
+                </select>
+                <input aria-label="Contact value" placeholder="Displayed value" value={item.value || ''} onChange={(event) => updateArrayItem('contactItems', index, 'value', event.target.value)} />
+                <input aria-label="Contact URL" placeholder="URL (required for links)" value={item.url || ''} onChange={(event) => updateArrayItem('contactItems', index, 'url', event.target.value)} />
+                <label className="admin-visibility-toggle"><input type="checkbox" checked={item.visible !== false} onChange={(event) => updateArrayItem('contactItems', index, 'visible', event.target.checked)} /> Visible publicly</label>
+                <button type="button" aria-label="Remove contact item" onClick={() => removeArrayItem('contactItems', index)}><Trash2 size={16} /> Remove</button>
               </div>
             ))}
           </div>

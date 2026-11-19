@@ -7,6 +7,7 @@ const projectSchema = new mongoose.Schema(
         technologies: [{ type: String, trim: true }],
         projectUrl: { type: String, default: "", trim: true },
         githubUrl: { type: String, default: "", trim: true },
+        imageUrl: { type: String, default: "", trim: true },
         status: {
             type: String,
             enum: ["draft", "published"],
@@ -34,6 +35,19 @@ const portfolioSchema = new mongoose.Schema(
             linkedin: { type: String, default: "https://www.linkedin.com/in/nandinisrivastava012/" },
             email: { type: String, default: "" }
         },
+        contactItems: [
+            {
+                type: {
+                    type: String,
+                    enum: ["email", "phone", "location", "link"],
+                    default: "link"
+                },
+                label: { type: String, required: true, trim: true, maxlength: 80 },
+                value: { type: String, required: true, trim: true, maxlength: 300 },
+                url: { type: String, default: "", trim: true, maxlength: 500 },
+                visible: { type: Boolean, default: true }
+            }
+        ],
         skills: [
             {
                 name: { type: String, required: true, trim: true },

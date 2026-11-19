@@ -88,6 +88,38 @@ async function uploadFile(req, res, type) {
     }
 }
 
+async function uploadProjectImage(req, res) {
+    try {
+        if (!req.file || !allowedTypes.photo.includes(req.file.mimetype)) {
+            return res.status(400).json({ message: "Only JPG, PNG, or WebP images are allowed." });
+        }
+
+        if (req.file.size > 5 * 1024 * 1024) {
+            return res.status(400).json({ message: "Project image must be smaller than 5 MB." });
+        }
+
+        if (!mongoose.Types.ObjectId.isValid(req.params.projectId)) {
+            return res.status(400).json({ message: "Invalid project id." });
+        }
+
+        const portfolio = await Portfolio.findOne();
+        const project = portfolio?.projects.id(req.params.projectId);
+        if (!project) {
+            return res.status(404).json({ message: "Project not found." });
+        }
+
+        const fileId = await storeFile(req.file, "project-image");
+        await removeOldFile(project.imageUrl);
+        project.imageUrl = `/api/files/${fileId.toString()}`;
+        await portfolio.save();
+
+        return res.json({ success: true, url: project.imageUrl });
+    } catch (error) {
+        console.error("Project image upload failed:", error.message);
+        return res.status(500).json({ message: "Unable to upload the project image." });
+    }
+}
+
 router.post(
     "/profile-photo",
     requireAuth,
@@ -100,6 +132,13 @@ router.post(
     requireAuth,
     upload.single("file"),
     (req, res) => uploadFile(req, res, "resume")
+);
+
+router.post(
+    "/project-image/:projectId",
+    requireAuth,
+    upload.single("file"),
+    uploadProjectImage
 );
 
 router.delete("/:type", requireAuth, async (req, res) => {
