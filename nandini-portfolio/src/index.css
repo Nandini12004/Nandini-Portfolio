@@ -1,0 +1,53 @@
+:root {
+  --bg: #080a0f;
+  --surface: rgba(17, 21, 29, 0.78);
+  --surface-light: #171c25;
+  --text: #f4f7fb;
+  --text-muted: #a1aabd;
+  --accent: #62aaff;
+  --accent-light: #9cc5ff;
+  --purple: #9f87ff;
+  --border: rgba(255, 255, 255, 0.09);
+  --font: "Inter", "Segoe UI", Arial, sans-serif;
+  font-family: var(--font);
+  color: var(--text);
+  background: var(--bg);
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  scroll-behavior: smooth;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-padding-top: 88px;
+}
+
+body {
+  min-width: 320px;
+  min-height: 100vh;
+  margin: 0;
+  overflow-x: hidden;
+  background:
+    radial-gradient(circle at 82% 12%, rgba(87, 139, 255, 0.12), transparent 23rem),
+    radial-gradient(circle at 12% 46%, rgba(154, 112, 255, 0.07), transparent 28rem),
+    var(--bg);
+}
+
+button,
+a {
+  font: inherit;
+}
+
+a {
+  color: inherit;
+}
+
+img {
+  display: block;
+  max-width: 100%;
+}
