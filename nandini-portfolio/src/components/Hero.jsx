@@ -51,7 +51,7 @@ function Hero({ portfolio }) {
 
           <h1>Hi, I'm <span>{profile?.name || 'Nandini Srivastava'}</span></h1>
           <p className="hero__title">
-            {profile?.title || 'Developer'} <span>|</span> Computer Science Engineering Student
+            {profile?.title || 'Developer'} <span>|| Data Analyst </span>
           </p>
 
           <motion.p
