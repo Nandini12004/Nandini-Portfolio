@@ -46,12 +46,12 @@ function Hero({ portfolio }) {
             transition={{ delay: 0.18, duration: 0.5 }}
           >
             <span></span>
-            Web Developer
+           Developer | Data Analytics
           </motion.p>
 
           <h1>Hi, I'm <span>{profile?.name || 'Nandini Srivastava'}</span></h1>
           <p className="hero__title">
-            {profile?.title || 'Web Developer'} <span>|</span> Computer Science Engineering Student
+            {profile?.title || 'Developer'} <span>|</span> Computer Science Engineering Student
           </p>
 
           <motion.p
