@@ -5,6 +5,7 @@ import Hero from './components/Hero'
 import PortfolioSections from './components/PortfolioSections'
 import AdminLogin from './components/AdminLogin'
 import AdminDashboard from './components/AdminDashboard'
+import { fetchWithRetry } from './apiFetch'
 import './App.css'
 
 function PublicPortfolio() {
@@ -13,7 +14,7 @@ function PublicPortfolio() {
   useEffect(() => {
     const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000'
 
-    fetch(`${apiUrl}/api/portfolio`)
+    fetchWithRetry(`${apiUrl}/api/portfolio`)
       .then((response) => {
         if (!response.ok) {
           throw new Error('Portfolio data is unavailable')

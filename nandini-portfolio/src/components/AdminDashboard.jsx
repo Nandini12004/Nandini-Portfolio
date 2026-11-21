@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { ExternalLink, LayoutDashboard, LogOut, Mail, Plus, Save, Trash2, Upload, UserRound } from 'lucide-react'
+import { fetchWithRetry } from '../apiFetch'
 
 const legacyContactItems = (data) => [
   data.socialLinks?.email && { type: 'email', label: 'Email', value: data.socialLinks.email, url: `mailto:${data.socialLinks.email}`, visible: true },
@@ -23,7 +24,7 @@ function AdminDashboard() {
     const loadAdminData = async () => {
       try {
         const [portfolioResponse, contactResponse] = await Promise.all([
-          fetch(`${apiUrl}/api/admin/portfolio`, { credentials: 'include' }),
+          fetchWithRetry(`${apiUrl}/api/admin/portfolio`, { credentials: 'include' }),
           fetch(`${apiUrl}/api/admin/contact`, { credentials: 'include' }),
         ])
 

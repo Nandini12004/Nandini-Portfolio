@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { fetchWithRetry } from '../apiFetch'
 import { motion, useReducedMotion } from 'framer-motion'
 import {
   Award,
@@ -158,7 +159,7 @@ function PortfolioSections({ portfolio }) {
 
     try {
       const apiUrl = import.meta.env.VITE_API_URL || 'http://127.0.0.1:5000'
-      const response = await fetch(`${apiUrl}/api/contact`, {
+      const response = await fetchWithRetry(`${apiUrl}/api/contact`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(form),
