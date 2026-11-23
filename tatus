@@ -1,0 +1,12 @@
+warning: in the working copy of 'nandini-portfolio/src/App.jsx', LF will be replaced by CRLF the next time Git touches it
+ backend/models/Portfolio.js                        | 14 [32m++++[m
+ backend/routes/portfolioRoutes.js                  | 53 [32m+++++++++++++[m[31m-[m
+ backend/routes/uploadRoutes.js                     | 39 [32m+++++++++++[m
+ backend/seedPortfolio.js                           |  3 [32m+[m
+ backend/server.js                                  |  8 [32m++[m[31m-[m
+ nandini-portfolio/src/App.css                      | 23 [32m++++++[m
+ nandini-portfolio/src/App.jsx                      |  2 [32m+[m[31m-[m
+ .../src/components/AdminDashboard.jsx              | 81 [32m++++++++++++++++++++[m[31m--[m
+ nandini-portfolio/src/components/AdminLogin.jsx    |  2 [32m+[m[31m-[m
+ .../src/components/PortfolioSections.jsx           | 41 [32m++++++++++[m[31m-[m
+ 10 files changed, 254 insertions(+), 12 deletions(-)

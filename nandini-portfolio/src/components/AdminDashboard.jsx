@@ -610,6 +610,116 @@ setContacts(await contactResponse.json())
 
         <section className="admin-panel">
           <div className="admin-panel__heading">
+            <div>
+              <p>CONTENT</p>
+              <h2>Projects Management</h2>
+            </div>
+          </div>
+
+          <div className="admin-editor-list">
+            {(portfolio.projects || []).map((project, index) => (
+              <div className="admin-project-editor" key={project._id || index}>
+                <input
+                  aria-label="Project title"
+                  placeholder="Project title"
+                  value={project.title || ''}
+                  onChange={(event) =>
+                    updateArrayItem('projects', index, 'title', event.target.value)
+                  }
+                />
+
+                <textarea
+                  aria-label="Project description"
+                  placeholder="Project description"
+                  value={project.description || ''}
+                  onChange={(event) =>
+                    updateArrayItem('projects', index, 'description', event.target.value)
+                  }
+                />
+
+                <input
+                  aria-label="Technologies"
+                  placeholder="Technologies (comma separated)"
+                  value={(project.technologies || []).join(', ')}
+                  onChange={(event) =>
+                    updateArrayItem(
+                      'projects',
+                      index,
+                      'technologies',
+                      event.target.value.split(',').map((tech) => tech.trim()).filter(Boolean)
+                    )
+                  }
+                />
+
+                <input
+                  aria-label="Live project URL"
+                  placeholder="Live project URL"
+                  value={project.projectUrl || ''}
+                  onChange={(event) =>
+                    updateArrayItem('projects', index, 'projectUrl', event.target.value)
+                  }
+                />
+
+                <input
+                  aria-label="GitHub URL"
+                  placeholder="GitHub URL"
+                  value={project.githubUrl || ''}
+                  onChange={(event) =>
+                    updateArrayItem('projects', index, 'githubUrl', event.target.value)
+                  }
+                />
+
+                <input
+                  aria-label="Project image URL"
+                  placeholder="Project image URL"
+                  value={project.imageUrl || ''}
+                  onChange={(event) =>
+                    updateArrayItem('projects', index, 'imageUrl', event.target.value)
+                  }
+                />
+
+                <select
+                  aria-label="Project status"
+                  value={project.status || 'published'}
+                  onChange={(event) =>
+                    updateArrayItem('projects', index, 'status', event.target.value)
+                  }
+                >
+                  <option value="published">Published</option>
+                  <option value="draft">Draft</option>
+                </select>
+
+                <button
+                  type="button"
+                  aria-label="Remove project"
+                  onClick={() => removeArrayItem('projects', index)}
+                >
+                  <Trash2 size={16} /> Remove project
+                </button>
+              </div>
+            ))}
+
+            <button
+              className="button button--secondary"
+              type="button"
+              onClick={() =>
+                addArrayItem('projects', {
+                  title: '',
+                  description: '',
+                  technologies: [],
+                  projectUrl: '',
+                  githubUrl: '',
+                  imageUrl: '',
+                  status: 'published',
+                })
+              }
+            >
+              <Plus size={16} /> Add project
+            </button>
+          </div>
+        </section>
+        <section className="admin-panel">
+          <div className="admin-panel__heading">
             <div><p>CONTENT</p><h2>Experience and Certificates</h2></div>
           </div>
           <div className="admin-editor-list">
