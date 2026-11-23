@@ -65,6 +65,15 @@ router.get("/", async (req, res) => {
         const publicPortfolio = {
             ...portfolio,
             socialLinks: managedSocialLinks,
+            skillCategories: (portfolio.skillCategories || [])
+                .map((category) => String(category || "").trim())
+                .filter(Boolean),
+            skills: (portfolio.skills || [])
+                .map((skill) => ({
+                    name: String(skill.name || "").trim(),
+                    category: String(skill.category || "").trim()
+                }))
+                .filter((skill) => skill.name && (portfolio.skillCategories || []).includes(skill.category)),
             projects: (portfolio.projects || []).filter(
                 (project) => project.status === "published" && project.title
             ),

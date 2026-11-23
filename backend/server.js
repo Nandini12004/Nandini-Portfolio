@@ -80,10 +80,24 @@ app.get("/api/admin/portfolio", requireAuth, async (req, res) => {
 
 app.put("/api/admin/portfolio", requireAuth, async (req, res) => {
     try {
+        const skillCategories = [...new Map(
+            (Array.isArray(req.body.skillCategories) ? req.body.skillCategories : [])
+                .map((category) => String(category || "").trim())
+                .filter(Boolean)
+                .map((category) => [category.toLowerCase(), category])
+        ).values()];
+        const validSkillCategories = new Set(skillCategories);
+        const skills = (Array.isArray(req.body.skills) ? req.body.skills : [])
+            .map((skill) => ({
+                name: String(skill?.name || "").trim(),
+                category: String(skill?.category || "").trim()
+            }))
+            .filter((skill) => skill.name && validSkillCategories.has(skill.category));
         const allowed = {
             profile: req.body.profile,
             socialLinks: req.body.socialLinks,
-            skills: req.body.skills,
+            skills,
+            skillCategories,
             projects: req.body.projects,
             contactItems: req.body.contactItems,
             experience: req.body.experience,
@@ -95,6 +109,9 @@ app.put("/api/admin/portfolio", requireAuth, async (req, res) => {
         if (!Object.prototype.hasOwnProperty.call(req.body, "contactItems")) {
             delete allowed.contactItems;
         }
+        if (!Object.prototype.hasOwnProperty.call(req.body, "skillCategories")) {
+    delete allowed.skillCategories;
+}
 
         let portfolio = await Portfolio.findOne();
         if (!portfolio) {

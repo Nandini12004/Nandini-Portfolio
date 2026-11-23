@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { ExternalLink, LayoutDashboard, LogOut, Mail, Plus, Save, Trash2, Upload, UserRound } from 'lucide-react'
+import { LayoutDashboard, LogOut, Mail, Plus, Save, Trash2, Upload, UserRound } from 'lucide-react'
 import { fetchWithRetry } from '../apiFetch'
 
 const legacyContactItems = (data) => [
@@ -9,10 +9,82 @@ const legacyContactItems = (data) => [
   data.socialLinks?.github && { type: 'link', label: 'GitHub', value: data.socialLinks.github, url: data.socialLinks.github, visible: true },
   data.socialLinks?.linkedin && { type: 'link', label: 'LinkedIn', value: data.socialLinks.linkedin, url: data.socialLinks.linkedin, visible: true },
 ].filter(Boolean)
-
 function AdminDashboard() {
   const navigate = useNavigate()
   const [portfolio, setPortfolio] = useState(null)
+  const [newSkillCategory, setNewSkillCategory] = useState('')
+  const [categoryRenameDrafts, setCategoryRenameDrafts] = useState({})
+  const [categorySkillDrafts, setCategorySkillDrafts] = useState({})
+  const [editingSkills, setEditingSkills] = useState({})
+  const addSkillCategory = () => {
+  const categoryName = newSkillCategory.trim()
+
+  if (!categoryName) {
+    setStatus('Category name cannot be empty')
+    return
+  }
+
+  if ((portfolio.skillCategories || []).some((category) =>
+    category.toLowerCase() === categoryName.toLowerCase()
+  )) {
+    setStatus('This category already exists')
+    return
+  }
+
+  setPortfolio((prev) => ({
+    ...prev,
+    skillCategories: [...(prev.skillCategories || []), categoryName],
+  }))
+
+  setNewSkillCategory('')
+  setStatus('Category added successfully')
+}
+const updateSkillCategory = (oldName, newName) => {
+  const categoryName = newName.trim()
+
+  if (!categoryName) {
+    setStatus('Category name cannot be empty')
+    return
+  }
+
+  if ((portfolio.skillCategories || []).some((category) =>
+    category !== oldName && category.toLowerCase() === categoryName.toLowerCase()
+  )) {
+    setStatus('This category already exists')
+    return
+  }
+
+  setPortfolio((prev) => ({
+    ...prev,
+    skillCategories: (prev.skillCategories || []).map((category) =>
+      category === oldName ? categoryName : category
+    ),
+    skills: (prev.skills || []).map((skill) => ({
+      ...skill,
+      category: skill.category === oldName ? categoryName : skill.category,
+    })),
+  }))
+  setStatus('Category renamed successfully')
+}
+const removeSkillCategory = (categoryName) => {
+  const hasSkills = portfolio.skills.some(
+    (skill) => skill.category === categoryName
+  )
+
+  if (hasSkills) {
+    setStatus('Move or remove skills from this category before deleting it')
+    return
+  }
+
+  setPortfolio((prev) => ({
+    ...prev,
+    skillCategories: prev.skillCategories.filter(
+      (category) => category !== categoryName
+    ),
+  }))
+
+  setStatus('Category deleted successfully')
+}
   const [contacts, setContacts] = useState([])
   const [status, setStatus] = useState('')
   const [toast, setToast] = useState(null)
@@ -33,19 +105,33 @@ function AdminDashboard() {
           return
         }
 
-        const portfolioData = await portfolioResponse.json()
-        setPortfolio({
-          ...portfolioData,
-          contactItems: portfolioData.contactItems?.length
-            ? portfolioData.contactItems
-            : legacyContactItems(portfolioData),
-        })
-        setContacts(await contactResponse.json())
-      } catch (error) {
-        setStatus(error.message)
-      } finally {
-        setLoading(false)
-      }
+        
+const portfolioData = await portfolioResponse.json()
+
+const skillCategories = (Array.isArray(portfolioData.skillCategories)
+  ? portfolioData.skillCategories
+  : []
+).map((category) => (category || '').trim()).filter(Boolean)
+
+const skills = (Array.isArray(portfolioData.skills) ? portfolioData.skills : [])
+  .map((skill) => ({ ...skill, name: (skill.name || '').trim(), category: (skill.category || '').trim() }))
+  .filter((skill) => skill.name)
+
+setPortfolio({
+  ...portfolioData,
+  skills,
+  skillCategories,
+  contactItems: portfolioData.contactItems?.length
+    ? portfolioData.contactItems
+    : legacyContactItems(portfolioData),
+})
+
+setContacts(await contactResponse.json())
+} catch (error) {
+  setStatus(error.message)
+} finally {
+  setLoading(false)
+}
     }
 
     loadAdminData()
@@ -90,32 +176,41 @@ function AdminDashboard() {
     }))
   }
 
-  const uploadProjectImage = async (projectId, file) => {
-    if (!file || !projectId) return
-
-    setStatus('Uploading project image...')
-    const formData = new FormData()
-    formData.append('file', file)
-
-    try {
-      const response = await fetch(`${apiUrl}/api/admin/upload/project-image/${projectId}`, {
-        method: 'POST',
-        credentials: 'include',
-        body: formData,
-      })
-      const result = await response.json()
-      if (!response.ok) throw new Error(result.message)
-
-      setPortfolio((current) => ({
-        ...current,
-        projects: current.projects.map((project) => project._id === projectId
-          ? { ...project, imageUrl: result.url }
-          : project),
-      }))
-      setStatus('Project image uploaded.')
-    } catch (error) {
-      setStatus(error.message)
+  const addSkillToCategory = (category) => {
+    const name = (categorySkillDrafts[category] || '').trim()
+    if (!name) {
+      setStatus('Skill name cannot be empty')
+      return
     }
+
+    setPortfolio((current) => ({
+      ...current,
+      skills: [...(current.skills || []), { name, category }],
+    }))
+    setCategorySkillDrafts((current) => ({ ...current, [category]: '' }))
+    setStatus(`Skill added to ${category}`)
+  }
+
+  const startEditingSkill = (skillKey, skillName) => {
+    setEditingSkills((current) => ({
+      ...current,
+      [skillKey]: skillName,
+    }))
+  }
+
+  const saveEditingSkill = (skillKey, skillIndex) => {
+    const name = (editingSkills[skillKey] || '').trim()
+    if (!name) {
+      setStatus('Skill name cannot be empty')
+      return
+    }
+    updateArrayItem('skills', skillIndex, 'name', name)
+    setEditingSkills((current) => {
+      const next = { ...current }
+      delete next[skillKey]
+      return next
+    })
+    setStatus('Skill renamed successfully')
   }
 
   const uploadFile = async (type, file) => {
@@ -184,14 +279,35 @@ function AdminDashboard() {
     setToast({ type: 'info', message: 'Saving changes...' })
 
     try {
+      const skillCategories = [...new Map(
+        (portfolio.skillCategories || [])
+          .map((category) => (category || '').trim())
+          .filter(Boolean)
+          .map((category) => [category.toLowerCase(), category])
+      ).values()]
+      const validCategories = new Set(skillCategories)
+      const skills = (portfolio.skills || [])
+        .map((skill) => ({
+          ...skill,
+          name: (skill.name || '').trim(),
+          category: (skill.category || '').trim(),
+        }))
+        .filter((skill) => skill.name && validCategories.has(skill.category))
+      const payload = {
+        ...portfolio,
+        skillCategories,
+        skills,
+      }
+
       const response = await fetch(`${apiUrl}/api/admin/portfolio`, {
         method: 'PUT',
         credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(portfolio),
+        body: JSON.stringify(payload),
       })
       const result = await response.json()
       if (!response.ok) throw new Error(result.message)
+      setPortfolio(payload)
       setStatus('Changes saved.')
       setToast({ type: 'success', message: 'Changes saved successfully.' })
       window.setTimeout(() => setToast(null), 3500)
@@ -342,56 +458,131 @@ function AdminDashboard() {
           {status && <p className="admin-status">{status}</p>}
         </form>
 
-        <section className="admin-panel">
-          <div className="admin-panel__heading">
-            <div><p>CONTENT</p><h2>Skills</h2></div>
-            <button className="button button--secondary" type="button" onClick={() => addArrayItem('skills', { name: '', category: 'core' })}><Plus size={16} /> Add skill</button>
-          </div>
-          <div className="admin-editor-list">
-            {(portfolio.skills || []).map((skill, index) => (
-              <div className="admin-editor-row" key={skill._id || index}>
-                <input aria-label="Skill name" value={skill.name || ''} onChange={(event) => updateArrayItem('skills', index, 'name', event.target.value)} />
-                <select aria-label="Skill category" value={skill.category || 'core'} onChange={(event) => updateArrayItem('skills', index, 'category', event.target.value)}>
-                  <option value="core">Core</option>
-                  <option value="advanced">Advanced</option>
-                  <option value="learning">Learning</option>
-                </select>
-                <button type="button" aria-label="Remove skill" onClick={() => removeArrayItem('skills', index)}><Trash2 size={16} /></button>
-              </div>
-            ))}
-          </div>
-        </section>
+       
+<section className="admin-panel">
+  <div className="admin-panel__heading">
+    <div><p>TECHNICAL ARSENAL</p><h2>Manage Technical Arsenal</h2></div>
+  </div>
 
-        <section className="admin-panel">
-          <div className="admin-panel__heading">
-            <div><p>CONTENT</p><h2>Projects</h2></div>
-            <button className="button button--secondary" type="button" onClick={() => addArrayItem('projects', { title: '', description: '', technologies: [], projectUrl: '', githubUrl: '', imageUrl: '', status: 'published' })}><Plus size={16} /> Add project</button>
+  <div className="admin-editor-row admin-editor-row--add-category">
+    <input
+      aria-label="New category name"
+      placeholder="Enter new category name"
+      value={newSkillCategory}
+      onChange={(event) => setNewSkillCategory(event.target.value)}
+    />
+    <button className="button button--secondary" type="button" onClick={addSkillCategory}>
+      <Plus size={16} /> Add New Category
+    </button>
+  </div>
+
+  <div className="technical-category-grid">
+    {(portfolio.skillCategories || []).map((category) => {
+      const categorySkills = (portfolio.skills || [])
+        .map((skill, skillIndex) => ({ skill, skillIndex }))
+        .filter(({ skill }) => skill.category === category)
+
+      return (
+        <article className="technical-category-card" key={category}>
+          <div className="technical-category-card__heading">
+            <input
+              aria-label={`Rename ${category}`}
+              value={categoryRenameDrafts[category] ?? category}
+              onChange={(event) => setCategoryRenameDrafts((current) => ({
+                ...current,
+                [category]: event.target.value,
+              }))}
+            />
+            <button
+              type="button"
+              className="button button--secondary"
+              onClick={() => {
+                const nextName = categoryRenameDrafts[category] ?? category
+                updateSkillCategory(category, nextName)
+              }}
+            >
+              Rename Category
+            </button>
+            <button
+              type="button"
+              className="admin-category-delete"
+              aria-label={`Delete ${category}`}
+              onClick={() => removeSkillCategory(category)}
+            >
+              <Trash2 size={15} /> Delete Category
+            </button>
           </div>
-          <div className="admin-editor-list">
-            {(portfolio.projects || []).map((project, index) => (
-              <div className="admin-project-editor" key={project._id || index}>
-                <input aria-label="Project title" placeholder="Project title" value={project.title || ''} onChange={(event) => updateArrayItem('projects', index, 'title', event.target.value)} />
-                <textarea aria-label="Project description" placeholder="Description" value={project.description || ''} onChange={(event) => updateArrayItem('projects', index, 'description', event.target.value)} />
-                <input aria-label="Project technologies" placeholder="Technology names separated by commas" value={(project.technologies || []).join(', ')} onChange={(event) => updateArrayItem('projects', index, 'technologies', event.target.value.split(',').map((value) => value.trim()).filter(Boolean))} />
-                <input aria-label="Project live URL" placeholder="Live demo URL" value={project.projectUrl || ''} onChange={(event) => updateArrayItem('projects', index, 'projectUrl', event.target.value)} />
-                <input aria-label="Project GitHub URL" placeholder="GitHub URL" value={project.githubUrl || ''} onChange={(event) => updateArrayItem('projects', index, 'githubUrl', event.target.value)} />
-                <input aria-label="Project image URL" placeholder="Project image URL" value={project.imageUrl || ''} onChange={(event) => updateArrayItem('projects', index, 'imageUrl', event.target.value)} />
-                {project._id && (
-                  <label className="admin-file-action">
-                    <Upload size={14} /> Upload image
-                    <input className="admin-file-action__input" type="file" accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp" onChange={(event) => uploadProjectImage(project._id, event.target.files?.[0])} />
-                  </label>
-                )}
-                {project.imageUrl && <a className="admin-current-file" href={project.imageUrl.startsWith('/api/') ? `${apiUrl}${project.imageUrl}` : project.imageUrl} target="_blank" rel="noopener noreferrer"><ExternalLink size={14} /> Current image</a>}
-                <select aria-label="Project status" value={project.status || 'draft'} onChange={(event) => updateArrayItem('projects', index, 'status', event.target.value)}>
-                  <option value="draft">Draft</option>
-                  <option value="published">Published</option>
-                </select>
-                <button type="button" aria-label="Remove project" onClick={() => removeArrayItem('projects', index)}><Trash2 size={16} /> Remove</button>
-              </div>
-            ))}
+
+          <div className="technical-category-card__skills">
+            {categorySkills.length === 0 && (
+              <p className="technical-category-card__empty">No skills in this category.</p>
+            )}
+            {categorySkills.map(({ skill, skillIndex }) => {
+              const skillKey = skill._id || `${category}-${skillIndex}`
+              const isEditing = Object.prototype.hasOwnProperty.call(editingSkills, skillKey)
+              return (
+                <div className="technical-skill-row" key={skillKey}>
+                  {isEditing ? (
+                    <input
+                      aria-label={`Edit skill ${skill.name}`}
+                      value={editingSkills[skillKey]}
+                      onChange={(event) => setEditingSkills((current) => ({
+                        ...current,
+                        [skillKey]: event.target.value,
+                      }))}
+                    />
+                  ) : (
+                    <span className="technical-skill-row__name">{skill.name}</span>
+                  )}
+
+                  <select
+                    aria-label={`Change category for ${skill.name}`}
+                    value={(portfolio.skillCategories || []).includes(skill.category) ? skill.category : ''}
+                    onChange={(event) => updateArrayItem('skills', skillIndex, 'category', event.target.value)}
+                  >
+                    <option value="">Select category</option>
+                    {(portfolio.skillCategories || []).map((option) => (
+                      <option key={option} value={option}>{option}</option>
+                    ))}
+                  </select>
+
+                  {isEditing ? (
+                    <button type="button" className="button button--secondary" onClick={() => saveEditingSkill(skillKey, skillIndex)}>
+                      Save
+                    </button>
+                  ) : (
+                    <button type="button" className="button button--secondary" onClick={() => startEditingSkill(skillKey, skill.name)}>
+                      Edit
+                    </button>
+                  )}
+                  <button type="button" aria-label={`Delete ${skill.name}`} onClick={() => removeArrayItem('skills', skillIndex)}>
+                    <Trash2 size={15} /> Delete
+                  </button>
+                </div>
+              )
+            })}
           </div>
-        </section>
+
+          <div className="technical-category-card__add">
+            <input
+              aria-label={`Add skill to ${category}`}
+              placeholder="Skill name"
+              value={categorySkillDrafts[category] || ''}
+              onChange={(event) => setCategorySkillDrafts((current) => ({
+                ...current,
+                [category]: event.target.value,
+              }))}
+            />
+            <button type="button" className="button button--secondary" onClick={() => addSkillToCategory(category)}>
+              <Plus size={15} /> Add Skill
+            </button>
+          </div>
+        </article>
+      )
+    })}
+  </div>
+</section>
+
 
         <section className="admin-panel">
           <div className="admin-panel__heading">

@@ -137,13 +137,15 @@ function PortfolioSections({ portfolio }) {
         socialLinks.github && { type: 'link', label: 'GitHub', value: socialLinks.github, url: socialLinks.github },
         socialLinks.linkedin && { type: 'link', label: 'LinkedIn', value: socialLinks.linkedin, url: socialLinks.linkedin },
       ].filter(Boolean)
-  const skills = data.skills?.length ? data.skills : fallback.skills
+  const skills = Array.isArray(data.skills) ? data.skills : []
   const projects = data.projects?.filter((project) => project.status !== 'draft') || fallback.projects
   const experience = data.experience?.length ? data.experience : fallback.experience
   const certificates = data.certificates?.length ? data.certificates : fallback.certificates
   const achievements = data.achievements?.length ? data.achievements : fallback.achievements
   const education = data.education?.length ? data.education : fallback.education
-  const skillCategories = ['Languages', 'Frontend', 'Backend', 'Database', 'Tools']
+  const skillCategories = Array.isArray(data.skillCategories)
+    ? data.skillCategories.map((category) => (category || '').trim()).filter(Boolean)
+    : []
   const [form, setForm] = useState({ name: '', email: '', subject: '', message: '' })
   const [formStatus, setFormStatus] = useState({ type: '', message: '' })
   const [submitting, setSubmitting] = useState(false)
@@ -215,16 +217,9 @@ function PortfolioSections({ portfolio }) {
           <SectionHeading eyebrow="02 / SKILLS" title="My Technical Arsenal" />
           <div className="skill-categories">
             {skillCategories.map((category, categoryIndex) => {
-              const categorySkills = skills.filter((skill) => {
-                if (category === 'Languages') return ['Python', 'C', 'C++', 'JavaScript'].includes(skill.name)
-                if (category === 'Frontend') return ['HTML', 'CSS', 'JavaScript', 'React.js'].includes(skill.name)
-                if (category === 'Backend') return ['Node.js', 'Express.js'].includes(skill.name)
-                if (category === 'Database') return ['MongoDB', 'MySQL', 'Supabase'].includes(skill.name)
-                if (category === 'Tools') return ['Git', 'GitHub', 'VS Code'].includes(skill.name)
-                return false
-              })
-              if (!categorySkills.length) return null
-
+              const categorySkills = skills.filter(
+                (skill) => skill.category === category
+              )
               return (
                 <motion.article
                   className="skill-category"

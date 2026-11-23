@@ -48,14 +48,14 @@ const portfolioSchema = new mongoose.Schema(
                 visible: { type: Boolean, default: true }
             }
         ],
+               skillCategories: {
+            type: [{ type: String, trim: true }],
+                   default: []
+        },
         skills: [
             {
                 name: { type: String, required: true, trim: true },
-                category: {
-                    type: String,
-                    enum: ["core", "advanced", "learning"],
-                    default: "core"
-                }
+                category: { type: String, required: true, trim: true }
             }
         ],
         projects: [projectSchema],

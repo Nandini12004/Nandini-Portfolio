@@ -18,20 +18,28 @@ const initialPortfolio = {
         linkedin: "https://www.linkedin.com/in/nandinisrivastava012/",
         email: "nandini.1210sr@gmail.com"
     },
+    skillCategories: [
+        "Programming Languages",
+        "Frontend",
+        "Backend",
+        "Databases",
+        "Tools & Technologies",
+        "Data Analytics"
+    ],
     skills: [
-        { name: "HTML", category: "core" },
-        { name: "CSS", category: "core" },
-        { name: "JavaScript", category: "core" },
-        { name: "React.js", category: "core" },
-        { name: "Python", category: "core" },
-        { name: "SQL", category: "core" },
-        { name: "Excel", category: "core" },
-        { name: "Power BI", category: "core" },
-        { name: "Git", category: "core" },
-        { name: "GitHub", category: "core" },
-        { name: "Node.js", category: "learning" },
-        { name: "Express.js", category: "learning" },
-        { name: "MongoDB", category: "learning" }
+        { name: "HTML", category: "Frontend" },
+        { name: "CSS", category: "Frontend" },
+        { name: "JavaScript", category: "Programming Languages" },
+        { name: "React.js", category: "Frontend" },
+        { name: "Python", category: "Programming Languages" },
+        { name: "SQL", category: "Databases" },
+        { name: "Excel", category: "Data Analytics" },
+        { name: "Power BI", category: "Data Analytics" },
+        { name: "Git", category: "Tools & Technologies" },
+        { name: "GitHub", category: "Tools & Technologies" },
+        { name: "Node.js", category: "Backend" },
+        { name: "Express.js", category: "Backend" },
+        { name: "MongoDB", category: "Databases" }
     ],
     projects: [
         {

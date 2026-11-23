@@ -1266,6 +1266,99 @@
   align-items: center;
 }
 
+.admin-editor-row--add-category {
+  grid-template-columns: minmax(0, 1fr) 150px;
+}
+
+.admin-editor-row--add-skill {
+  grid-template-columns: minmax(0, 1fr) 150px 150px;
+}
+
+.technical-category-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+  margin-top: 14px;
+}
+
+.technical-category-card {
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: rgba(7, 9, 13, 0.42);
+  padding: 14px;
+}
+
+.technical-category-card__heading,
+.technical-category-card__add,
+.technical-skill-row {
+  display: grid;
+  gap: 8px;
+  align-items: center;
+}
+
+.technical-category-card__heading {
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  margin-bottom: 12px;
+}
+
+.technical-category-card__heading input,
+.technical-category-card__add input,
+.technical-skill-row input,
+.technical-skill-row select {
+  width: 100%;
+  min-height: 38px;
+  border: 1px solid var(--border);
+  border-radius: 9px;
+  background: rgba(7, 9, 13, 0.72);
+  color: var(--text);
+  padding: 0 10px;
+  font: inherit;
+}
+
+.technical-category-card__add {
+  grid-template-columns: minmax(0, 1fr) 120px;
+  margin-top: 10px;
+}
+
+.technical-category-card__skills {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.technical-category-card__empty {
+  margin: 4px 0;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.technical-skill-row {
+  grid-template-columns: minmax(0, 1fr) 150px 76px 76px;
+}
+
+.technical-skill-row__name {
+  min-height: 38px;
+  display: flex;
+  align-items: center;
+  border: 1px solid var(--border);
+  border-radius: 9px;
+  padding: 0 10px;
+  font-size: 14px;
+}
+
+.technical-skill-row button,
+.admin-category-delete {
+  min-height: 38px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  border: 1px solid var(--border);
+  border-radius: 9px;
+  background: transparent;
+  color: var(--text);
+}
+
 .admin-editor-row input,
 .admin-editor-row select,
 .admin-project-editor input,
@@ -1497,6 +1590,19 @@
 
   .admin-editor-row button,
   .admin-project-editor button {
+    width: 100%;
+  }
+
+  .technical-category-grid,
+  .technical-category-card__heading,
+  .technical-category-card__add,
+  .technical-skill-row {
+    grid-template-columns: 1fr;
+  }
+
+  .technical-category-card__heading button,
+  .technical-category-card__add button,
+  .technical-skill-row button {
     width: 100%;
   }
 }

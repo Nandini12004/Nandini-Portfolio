@@ -13,7 +13,7 @@ export async function fetchWithRetry(url, options = {}, { retries = 10, delayMs 
       if (!serverNotReady) {
         return response
       }
-    } catch (error) {
+    } catch {
       // network error while the server is waking up: try again
     }
 
